@@ -1,0 +1,4 @@
+# Ensure the Maven wrapper script has executable permission
+# and uses LF line endings for compatibility with Unix systems
+mvnw text eol=lf
+mvnw executable
