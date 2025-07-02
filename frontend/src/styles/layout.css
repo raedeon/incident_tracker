@@ -1,0 +1,33 @@
+@layer components {
+  .page-wrapper {
+    @apply min-h-screen bg-gray-100;
+  }
+
+  .main-content {
+    @apply max-w-7xl mx-auto px-6 py-8 space-y-8;
+  }
+
+  .responsive-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+  }
+
+  .vertical-stack-tight {
+    @apply w-full space-y-1;
+  }
+
+  .flex-between-center {
+    @apply flex justify-between items-center mb-4;
+  }
+
+  .navbar {
+    @apply bg-[#00205B] text-white px-6 py-3 shadow flex justify-between items-center;
+  }
+
+  .login-container {
+    @apply flex flex-col justify-center items-center h-screen bg-[#00205B] px-6;
+  }
+
+  .login-card {
+    @apply bg-white p-8 rounded-2xl shadow-md w-full max-w-sm text-center space-y-6;
+  }
+}

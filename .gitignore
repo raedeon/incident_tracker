@@ -1,0 +1,36 @@
+# === Node (frontend) ===
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.*.local
+
+# === Java (backend) ===
+backend/target/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/.idea/
+backend/*.iml
+backend/src/main/resources/application.properties
+
+# === Maven ===
+*.log
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# === OS / IDE ===
+.DS_Store
+Thumbs.db
+*.swp
+
+# === IntelliJ / VS Code ===
+.idea/
+*.iml
+.vscode/
+
+# === System / Env Files ===
+.env
+.env.local
+*.bak
