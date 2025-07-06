@@ -2,6 +2,7 @@
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../routes'; // Adjust the path if necessary
+import API from '../utils/axiosSetup';
 import logo from '../assets/logo.png';
 
 const Login = () => {
@@ -17,13 +18,13 @@ const Login = () => {
     localStorage.setItem('jwt', credential);
 
     try {
-      const res = await fetch('http://localhost:8080/api/auth/google', {
+      const res = await API.post('/auth/google', null, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${credential}`
         }
       });
-      const data = await res.json();
+      const data = await res.data;
       const role = data.role || 'VIEWER';
       localStorage.setItem('role', role);
     } catch (err) {
