@@ -8,6 +8,7 @@ import {
   deleteTicket,
 } from '../services/ticketService';
 import { Ticket } from '../types/ticket';
+import { getUserRole } from '../auth/tokenUtils';
 
 interface TicketItemProps {
   ticket: Ticket;
@@ -16,6 +17,8 @@ interface TicketItemProps {
 }
 
 const TicketItem: React.FC<TicketItemProps> = ({ ticket, onClose, onReasonSaved }) => {
+  const role = getUserRole();
+
   const [localReason, setLocalReason] = useState<string>(ticket._localReason || '');
 
   const [closeDate, setCloseDate] = useState<string>(() => {
@@ -114,36 +117,43 @@ const TicketItem: React.FC<TicketItemProps> = ({ ticket, onClose, onReasonSaved 
 
       {/* Action buttons */}
       <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center w-full sm:w-auto">
-        {ticket.status === 'Open' ? (
-          <>
-            <input
-              type="date"
-              className="date-input"
-              value={closeDate}
-              onChange={(e) => setCloseDate(e.target.value)}
-            />
+      {(role === 'ADMIN' || role === 'USER') && (
+        <>
+          {ticket.status === 'Open' ? (
+            <>
+              <input
+                type="date"
+                className="date-input"
+                value={closeDate}
+                onChange={(e) => setCloseDate(e.target.value)}
+              />
+              <button
+                onClick={handleClose}
+                className="close-button"
+              >
+                Close
+              </button>
+            </>
+          ) : (
             <button
-              onClick={handleClose}
-              className="close-button"
+              onClick={handleReopen}
+              className="reopen-button"
             >
-              Close
+              Reopen
             </button>
-          </>
-        ) : (
+          )}
+        </>
+      )}
+
+
+        {role === 'ADMIN' && (
           <button
-            onClick={handleReopen}
-            className="reopen-button"
+            onClick={handleDelete}
+            className="delete-button"
           >
-            Reopen
+            Delete
           </button>
         )}
-
-        <button
-          onClick={handleDelete}
-          className="delete-button"
-        >
-          Delete
-        </button>
       </div>
     </li>
   );

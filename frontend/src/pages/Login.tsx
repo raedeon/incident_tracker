@@ -15,6 +15,23 @@ const Login = () => {
     }
 
     localStorage.setItem('jwt', credential);
+
+    try {
+      const res = await fetch('http://localhost:8080/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${credential}`
+        }
+      });
+      const data = await res.text();
+      const matched = data.match(/role (\w+)/);  // crude parsing
+      const role = matched?.[1] || 'VIEWER';
+      localStorage.setItem('role', role);
+    } catch (err) {
+      console.error('Failed to get role:', err);
+      localStorage.setItem('role', 'VIEWER');
+    }
+  
     navigate(ROUTES.dashboard);
   };
 

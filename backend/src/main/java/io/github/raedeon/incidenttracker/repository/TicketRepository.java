@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param; // Imports Param for nam
 import org.springframework.transaction.annotation.Transactional; // Imports Transactional for managing transactions
 import org.springframework.data.jpa.repository.Modifying; // Imports Modifying for update/delete operations
 
-import java.util.List; // Imports List for returning multiple records
 import java.util.*; // Imports Object array for custom query results
 
 // TicketRepository inherits CRUD operations from JpaRepository

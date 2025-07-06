@@ -4,8 +4,11 @@ import TicketList from '../components/TicketList';
 import IncidentLog from '../components/IncidentLog';
 import IncidentStats from '../components/IncidentStats';
 import Navbar from '../components/NavBar';
+import { getUserRole } from '../auth/tokenUtils';
 
 const Dashboard: React.FC = () => {
+  const role = getUserRole();
+
   const [refreshKey, setRefreshKey] = useState<number>(0);
 
   const handleRefresh = (): void => setRefreshKey((prev) => prev + 1);
@@ -18,9 +21,19 @@ const Dashboard: React.FC = () => {
       <main className="main-content">
 
         {/* Top row: Add form + Stats chart */}
-        <div className="responsive-grid">
-          <AddTicketForm onSuccess={handleRefresh} />
-          <IncidentStats refreshKey={refreshKey} />
+        <div className="w-full">
+          {(role === "ADMIN" || role === "USER") ? (
+            <div className="responsive-grid">
+              <AddTicketForm onSuccess={handleRefresh} />
+              <IncidentStats refreshKey={refreshKey} />
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="w-full sm:w-1/2 px-2">
+                <IncidentStats refreshKey={refreshKey} />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Bottom row: Ticket list + Incident log */}
