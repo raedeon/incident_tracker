@@ -11,6 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class GoogleAuthController {
@@ -22,7 +24,7 @@ public class GoogleAuthController {
     }
 
     @PostMapping("/google")
-    public ResponseEntity<String> googleLogin(Authentication authentication) {
+    public ResponseEntity<Map<String, String>> googleLogin(Authentication authentication) {
         Jwt jwt = (Jwt) authentication.getPrincipal(); // Casts the authenticated principal (user) to a Jwt object to access token claims 
         String email = jwt.getClaimAsString("email");  // Extracts the 'email' claim from the JWT (issued by Google after successful login)
 
@@ -46,6 +48,9 @@ public class GoogleAuthController {
         user.setRole(role); // Ensure correct role
         userRepository.save(user);
 
-        return ResponseEntity.ok("Access granted to " + email + " with role " + role);
+        return ResponseEntity.ok(Map.of(
+            "email", email,
+            "role", role.name()
+        ));
     }
 }

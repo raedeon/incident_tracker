@@ -23,9 +23,8 @@ const Login = () => {
           'Authorization': `Bearer ${credential}`
         }
       });
-      const data = await res.text();
-      const matched = data.match(/role (\w+)/);  // crude parsing
-      const role = matched?.[1] || 'VIEWER';
+      const data = await res.json();
+      const role = data.role || 'VIEWER';
       localStorage.setItem('role', role);
     } catch (err) {
       console.error('Failed to get role:', err);
