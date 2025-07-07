@@ -39,6 +39,18 @@ A full-stack incident tracking system built with React, Spring Boot, and Postgre
 
 ---
 
+## 🔐 Authentication Flow
+
+The application uses a two-step authentication process to ensure security and restrict access to authorized users:
+
+1.  **Google OAuth Handshake:** The user initiates login on the frontend, which redirects them to Google's OAuth screen. Upon successful login, Google provides an ID Token to the frontend.
+2.  **Backend Token Verification:** The frontend sends this Google ID Token to a dedicated endpoint on the Spring Boot backend (e.g., `/api/auth/google`).
+3.  **Domain & User Check:** The backend validates the token with Google's servers. It then extracts the user's email and verifies that it belongs to an authorized enterprise domain (e.g., `@your-company.com`), which is configured in the application properties.
+4.  **JWT Issuance:** If the user is authorized, the backend either finds the existing user in the PostgreSQL database or creates a new one. It then generates a custom JSON Web Token (JWT) containing the user's ID, email, and role (`ADMIN`, `USER`, or `VIEWER`).
+5.  **Secure API Communication:** This JWT is sent back to the React client. The client stores it securely (e.g., in memory or `localStorage`) and includes it in the `Authorization: Bearer <token>` header for all subsequent requests to protected API endpoints. Spring Security validates this JWT on every request.
+
+---
+
 ## 📁 Folder Structure
 ```
 incident_tracker/
@@ -106,7 +118,7 @@ incident_tracker/
 - [PostgreSQL](https://www.postgresql.org/)
 - [Maven](https://maven.apache.org/) (or use Maven Wrapper)
 
-### Backend Setup
+### 🖥️ Backend Setup
 
 1. Create the database in PostgreSQL:
 
@@ -159,7 +171,7 @@ The backend will be available at `http://localhost:8080`
 http://localhost:8080/swagger-ui/index.html
 ```
 
-### Frontend Setup
+### 🌐 Frontend Setup
 
 1. Navigate to the frontend directory:
 ```bash
@@ -189,7 +201,7 @@ The frontend will be available at `http://localhost:5173`
 
 ## 🚀 Deployment
 
-### Frontend (Vercel)
+### 🌐 Frontend (Vercel)
 
 1. Push your `frontend/` directory to GitHub.
 2. Go to [vercel.com](https://vercel.com/) and import the project.
@@ -200,7 +212,7 @@ VITE_API_BASE_URL=https://your-backend-url.onrailway.app
 ```
 4. Deploy!
 
-### Database (Supabase)
+### 🗄️ Database (Supabase)
 
 - This project uses [Supabase](https://supabase.com/) for the hosted PostgreSQL database.
 - After creating a project, go to:
@@ -223,7 +235,7 @@ spring.datasource.username=<user>
 spring.datasource.password=<your-password>
 ```
 
-### Backend (Railway)
+### 🚂 Backend (Railway)
 
 1. Push your `backend/` directory to GitHub.
 2. Go to [railway.app](https://railway.app/) and create a new project.
@@ -254,8 +266,11 @@ SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://accounts.google.com
 java -jar target/*.jar
 ```
 
-6. Deploy and test at:  
-`https://your-backend-url.onrailway.app/swagger-ui/index.html`
+6. Deploy and test at:
+
+```
+https://your-backend-url.onrailway.app/swagger-ui/index.html
+```
 
 ---
 
