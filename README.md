@@ -33,9 +33,11 @@ A full-stack incident tracking system built with React, Spring Boot, and Postgre
 - **Maven** - Build tool and dependency management
 
 ### Dev & Deployment
-- **Vercel** - Frontend hosting and deployment
-- **Railway** - Backend hosting and deployment
-- **SupaBase** - Managed PostgreSQL database
+- **Amazon S3** - Static frontend hosting
+- **Amazon CloudFront** - Global CDN and reverse proxy for frontend and backend
+- **AWS Elastic Beanstalk** - Managed environment for the Spring Boot application
+- **Amazon RDS** - Managed PostgreSQL database
+- **Amazon VPC** - Virtual Private Cloud for secure networking
 
 ---
 
@@ -45,7 +47,7 @@ The application uses a two-step authentication process to ensure security and re
 
 1.  **Google OAuth Handshake:** The user initiates login on the frontend, which redirects them to Google's OAuth screen. Upon successful login, Google provides an ID Token to the frontend.
 2.  **Backend Token Verification:** The frontend sends this Google ID Token to a dedicated endpoint on the Spring Boot backend (e.g., `/api/auth/google`).
-3.  **Domain & User Check:** The backend validates the token with Google's servers. It then extracts the user's email and verifies that it belongs to an authorized enterprise domain (e.g., `@your-company.com`), which is configured in the application properties.
+3.  **Domain & User Check:** The backend validates the token with Google's servers. It then extracts the user's email and verifies that it belongs to an authorized enterprise domain (e.g., `@your-company.com`), which is configured in GoogleAuthController.
 4.  **JWT Issuance:** If the user is authorized, the backend either finds the existing user in the PostgreSQL database or creates a new one. It then generates a custom JSON Web Token (JWT) containing the user's ID, email, and role (`ADMIN`, `USER`, or `VIEWER`).
 5.  **Secure API Communication:** This JWT is sent back to the React client. The client stores it securely (e.g., in memory or `localStorage`) and includes it in the `Authorization: Bearer <token>` header for all subsequent requests to protected API endpoints. Spring Security validates this JWT on every request.
 
@@ -201,76 +203,127 @@ The frontend will be available at `http://localhost:5173`
 
 ## 🚀 Deployment
 
-### 🌐 Frontend (Vercel)
+This application is designed for a professional, scalable deployment on **Amazon Web Services (AWS)**, utilizing a reverse proxy architecture for enhanced security and performance.
 
-1. Push your `frontend/` directory to GitHub.
-2. Go to [vercel.com](https://vercel.com/) and import the project.
-3. Set the following environment variables in Vercel:
-```
-VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-VITE_API_BASE_URL=https://your-backend-url.onrailway.app
-```
-4. Deploy!
+The architecture consists of:
+- **Networking (VPC):** Securely isolated network with firewall rules (Security Groups).
+- **Database (Amazon RDS):** A private, managed PostgreSQL database instance.
+- **Backend (AWS Elastic Beanstalk):** A managed environment for the Spring Boot application.
+- **Frontend (Amazon S3 & CloudFront):** A static website hosted on S3 and delivered globally via the CloudFront CDN, which also acts as a reverse proxy for the backend.
 
-### 🗄️ Database (Supabase)
+### 🔧 Deployment Prerequisites
 
-- This project uses [Supabase](https://supabase.com/) for the hosted PostgreSQL database.
-- After creating a project, go to:
+Before you begin, you will need:
 
-**Project → Connect**
+-   An **AWS Account** with administrative access.
+-   The **AWS CLI** installed and configured on your local machine. (optional)
+-   Your **Google OAuth Client ID** ready.
 
-- Under **"Connection String"**, use the one labelled:
+---
 
-```
-Session pooler
-```
+### 1. 🔐 Networking & Security (Security Groups)
 
-> ✅ **Required** for platforms like Railway (IPv4-based)  
+First, create the firewall rules that will allow your services to communicate securely.
 
-- Copy these credentials into your Railway backend environmental variables:
+1.  Navigate to the **VPC** service in the AWS Console.
+2.  Go to **Security Groups** and create two new groups in your default VPC:
+    1.  **Backend Security Group (`backend-sg`):**
+        -   This group will contain your Elastic Beanstalk application server. It needs an inbound rule that allows HTTP traffic from the internet (which Elastic Beanstalk will manage).
+    2.  **Database Security Group (`db-sg`):**
+        -   This group will contain your RDS database.
+        -   Add an **Inbound rule** with the following settings:
+            -   **Type:** `PostgreSQL`
+            -   **Port:** `5432`
+            -   **Source:** Select your `backend-sg`.
+        -   This ensures only your backend application can connect to the database.
 
-```properties
-spring.datasource.url=jdbc:postgresql://<host>:5432/<database>
-spring.datasource.username=<user>
-spring.datasource.password=<your-password>
-```
+---
 
-### 🚂 Backend (Railway)
+### 2. 🗄️ Database (Amazon RDS)
 
-1. Push your `backend/` directory to GitHub.
-2. Go to [railway.app](https://railway.app/) and create a new project.
-3. Connect your GitHub repo and set the root directory to `backend/`.
-4. Set environment variables in Railway:
+1.  Navigate to the **RDS** service and click **Create database**.
+2.  Choose **Standard create** and **PostgreSQL**.
+3.  Select the **Free tier** template to avoid costs.
+4.  **Settings:**
+    -   **DB instance identifier:** `incident-tracker-db`
+    -   Set your **Master username** and **password**.
+5.  **Connectivity:**
+    -   **Public access:** Set to **No**. This is critical for security.
+    -   **VPC security group:** Choose **Choose existing** and select your `db-sg`.
+6.  Create the database. Once it's available, **copy the database Endpoint**.
 
-```env
-SPRING_DATASOURCE_URL=jdbc:postgresql://<host>:5432/<database>
-SPRING_DATASOURCE_USERNAME=<your-db-user>
-SPRING_DATASOURCE_PASSWORD=<your-db-password>
-SPRING_JPA_HIBERNATE_DDL_AUTO=update
-SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
-SPRING_JPA_SHOW_SQL=true
-SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://accounts.google.com
-```
+---
 
-5. In Deploy Settings, configure:
+### 3. 🚂 Backend (AWS Elastic Beanstalk)
 
-- Build command:
+1.  **Package the Application:** In your `backend/` directory, run `mvn clean package` to create the `.jar` file.
+2.  Navigate to **Elastic Beanstalk** and **Create a new environment**.
+3.  **Configure Environment:**
+    -   **Environment tier:** `Web server environment`
+    -   **Application name:** `incident-tracker`
+    -   **Platform:** `Java` (select a recent Corretto version)
+    -   **Application code:** `Upload your code` and select the `.jar` file from your `backend/target/` directory.
+    -   **Presets:** `Single instance (Free Tier eligible)`
+4.  **Configure Service Access:** Use the default settings to create new service roles.
+5.  **Set up Networking:**
+    -   Select your VPC.
+    -   Under **Instance settings**, for **EC2 security groups**, remove the default and add your `backend-sg`.
+6.  **Configure Instance Properties:**
+    -   Under **Configure instance traffic and scaling**, find the **Environment properties** section.
+    -   Add the following properties:
+        ```env
+        # Database Credentials
+        SPRING_DATASOURCE_URL=jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/incidents
+        SPRING_DATASOURCE_USERNAME=<your-rds-master-username>
+        SPRING_DATASOURCE_PASSWORD=<your-rds-master-password>
+        
+        # Spring Security JWT Validation
+        SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://accounts.google.com
+        SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_AUDIENCE=<YOUR_GOOGLE_OAUTH_CLIENT_ID>
+        
+        # Server Port Configuration
+        SERVER_PORT=5000
+        ```
+7.  **Review and Launch.** Once the environment is healthy, **copy the environment's URL**.
 
-```bash
-./mvnw package
-```
+---
 
-- Start command:
+### 4. 🌐 Frontend (Amazon S3 & CloudFront)
 
-```bash
-java -jar target/*.jar
-```
+1.  **Prepare the Frontend:**
+    -   In your `frontend/.env` file, set the API base URL to a relative path:
+        ```env
+        VITE_API_BASE_URL=""
+        ```
+    -   Run `npm run build` in the `frontend/` directory.
 
-6. Deploy and test at:
+2.  **Configure S3 Bucket:**
+    -   Navigate to the **S3** service and **Create bucket**.
+    -   Give it a unique name (e.g., `incident-tracker-frontend-yourname`).
+    -   Keep **Block all public access** checked.
+    -   Upload the entire contents of your `frontend/dist/` folder to the bucket.
 
-```
-https://your-backend-url.onrailway.app/swagger-ui/index.html
-```
+3.  **Configure CloudFront Distribution:**
+    -   Navigate to **CloudFront** and **Create a distribution**.
+    -   **Configure Origins:**
+        1.  **Primary Origin (S3):**
+            -   **Origin domain:** Select your S3 bucket.
+            -   **Origin access:** Select **Origin access control settings (recommended)** and create a new OAC. Click the **Copy policy** button and apply this policy to your S3 bucket's permissions to lock it down.
+        2.  **Secondary Origin (Backend):**
+            -   **Origin domain:** Paste your **Elastic Beanstalk URL** (e.g., `http://incident-tracker-env...`).
+            -   **Protocol:** `HTTP only`.
+    -   **Configure Behaviors:**
+        1.  **Create an API Behavior (Precedence 0):**
+            -   **Path pattern:** `/api/*`
+            -   **Origin:** Select your **Elastic Beanstalk origin**.
+            -   **Cache policy:** `Managed-CachingDisabled`.
+            -   **Origin request policy:** `AllViewerExceptHostHeader`.
+        2.  **Edit the Default Behavior (Precedence 1):**
+            -   **Path pattern:** `Default (*)`
+            -   **Origin:** Select your **S3 origin**.
+    -   **Launch the distribution.** Once deployed, the **Distribution domain name** is your final public URL.
+
+4.  **Final Step:** Update your **Google OAuth Credentials** to add the new CloudFront domain name to the list of authorized JavaScript origins.
 
 ---
 
