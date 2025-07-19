@@ -11,7 +11,6 @@ import java.util.Map; // Used for request body in update methods
 
 @RestController // Marks this class as a REST controller
 @RequestMapping("/api/tickets") // Sets base path for all endpoints
-@CrossOrigin(origins = "*") // Allows frontend (e.g., React) to access this API
 public class TicketController {
 
     @Autowired // Automatically injects the TicketService bean

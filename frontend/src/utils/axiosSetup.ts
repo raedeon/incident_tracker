@@ -2,10 +2,15 @@
 // This allows the frontend to make authenticated requests to the backend without needing to manually add the token
 import axios from 'axios';
 
+const isDev = import.meta.env.MODE === 'development';
+
 // Create a custom Axios instance with a predefined base URL
-const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL + '/api', // All requests will be prefixed with this URL
-});
+// If in development, use VITE_API_BASE_URL; otherwise use relative '/api'
+const baseURL = isDev
+  ? import.meta.env.VITE_API_BASE_URL +'/api'
+  : '/api';
+
+const API = axios.create({ baseURL });
 
 // Attach a request interceptor to the Axios instance
 API.interceptors.request.use((config) => {

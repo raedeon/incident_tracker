@@ -19,7 +19,6 @@ const Login = () => {
 
     try {
       const res = await API.post('/auth/google', null, {
-        method: 'POST',
         headers: {
           'Authorization': `Bearer ${credential}`
         }
