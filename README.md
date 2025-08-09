@@ -1,5 +1,13 @@
 # Incident Tracker
 
+[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://adoptium.net/)
+[![Spring Boot](https://img.shields.io/badge/Backend-Spring_Boot-green.svg)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/Frontend-React-blue.svg)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178c6.svg)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue.svg)](https://www.postgresql.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Style-Tailwind_CSS-38B2AC.svg)](https://tailwindcss.com/)
+[![AWS](https://img.shields.io/badge/Hosting-AWS-yellow.svg)](https://aws.amazon.com/)
+
 A full-stack incident tracking system built with React, Spring Boot, and PostgreSQL. Designed to streamline the reporting and management of incidents across teams with role-based access and Google OAuth login.
 
 ---
